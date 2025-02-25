@@ -148,7 +148,88 @@ uvicorn main:app --reload --port <PORT>
 - **Example Response:**
 
     ```json
-    [[{"topic_id": 10829, "topic_label": "829: Networks on Chip in System-on-Chip Design", "topic_score": 0.9978}, {"topic_id": 10054, "topic_label": "54: Parallel Computing and Performance Optimization", "topic_score": 0.9962}, {"topic_id": 11522, "topic_label": "1522: Design and Optimization of Field-Programmable Gate Arrays and Application-Specific Integrated Circuits", "topic_score": 0.9909}]]
+    [
+        [
+            {
+                "topic_id": 10829,
+                "topic_label": "829: Networks on Chip in System-on-Chip Design",
+                "topic_score": 0.9978
+            },
+            {
+                "topic_id": 10054,
+                "topic_label": "54: Parallel Computing and Performance Optimization",
+                "topic_score": 0.9963
+            },
+            {
+                "topic_id": 11522,
+                "topic_label": "1522: Design and Optimization of Field-Programmable Gate Arrays and Application-Specific Integrated Circuits",
+                "topic_score": 0.991
+            }
+        ]
+    ]
+    ```
+
+## Non-inverted Abstract Prediction
+
+- **Endpoint:** `/single`
+- **Method:** `POST`
+- **Description:** Predicts topics for a single academic paper with an univerted abstract.
+- **Input Data Format:**
+
+  ```json
+  [
+      {
+          "title": "The renewable energy role in the global energy Transformations",
+          "abstract": "In a comprehensive analysis of the global transition towards renewable energy, the study revealed...",
+          "abstract_inverted_index": {},
+          "journal_display_name": "Renewable energy focus",
+          "referenced_works": [
+              "https://openalex.org/W2275853436",
+              "https://openalex.org/W2412247133",
+              "https://openalex.org/W2545730423",
+              ....,
+              "https://openalex.org/W2601431494"]
+          "inverted": false
+      }
+  ] 
+  ```
+
+- **Example Request:**
+
+  ```python
+  import requests
+  import json
+
+  url = "http://localhost:<PORT>/single"
+  headers = {"Content-Type": "application/json"}
+  with open("test_samples/test_json_single_not_inverted.json", "r") as f:
+      data = json.load(f)
+  response = requests.post(url, headers=headers, json=data)
+  print(response.json()) 
+  ```
+
+- **Example Response:**
+
+    ```json
+    [
+        [
+            {
+                "topic_id": 12639,
+                "topic_label": "2639: Global Energy Transition and Fossil Fuel Depletion",
+                "topic_score": 0.9951
+            },
+            {
+                "topic_id": 11185,
+                "topic_label": "1185: Integration of Renewable Energy Systems in Power Grids",
+                "topic_score": 0.9747
+            },
+            {
+                "topic_id": 12129,
+                "topic_label": "2129: Energy Supply and Security Issues for Developed Economies",
+                "topic_score": 0.9722
+            }
+        ]
+    ]
     ```
 
 ### Batch Paper Prediction
@@ -173,10 +254,43 @@ uvicorn main:app --reload --port <PORT>
 - **Example Response:**
 
   ```json
-  [[{"topic_id": 10829, "topic_label": "829: Networks on Chip in System-on-Chip Design", "topic_score": 0.9978}, {"topic_id": 10054, "topic_label": "54: Parallel Computing and Performance Optimization", "topic_score": 0.9962}, {"topic_id": 11522, "topic_label": "1522: Design and Optimization of Field-Programmable Gate Arrays and Application-Specific Integrated Circuits", "topic_score": 0.9909}], [{"topic_id": 10110, "topic_label": "110: Seismicity and Tectonic Plate Interactions", "topic_score": 0.9995}, {"topic_id": 12157, "topic_label": "2157: Machine Learning for Mineral Prospectivity Mapping", "topic_score": 0.9933}, {"topic_id": 10399, "topic_label": "399: Characterization of Shale Gas Pore Structure", "topic_score": 0.991}]]
+  [
+      [
+          {
+              "topic_id": 10829,
+              "topic_label": "829: Networks on Chip in System-on-Chip Design",
+              "topic_score": 0.9978
+          },
+          {
+              "topic_id": 10054,
+              "topic_label": "54: Parallel Computing and Performance Optimization",
+              "topic_score": 0.9962
+          },
+          {
+              "topic_id": 11522,
+              "topic_label": "1522: Design and Optimization of Field-Programmable Gate Arrays and Application-Specific Integrated Circuits",
+              "topic_score": 0.9909
+          }
+      ],
+      [
+          {
+              "topic_id": 10110,
+              "topic_label": "110: Seismicity and Tectonic Plate Interactions",
+              "topic_score": 0.9995
+          },
+          {
+              "topic_id": 12157,
+              "topic_label": "2157: Machine Learning for Mineral Prospectivity Mapping",
+              "topic_score": 0.9933
+          },
+          {
+              "topic_id": 10399,
+              "topic_label": "399: Characterization of Shale Gas Pore Structure",
+              "topic_score": 0.991
+          }
+      ]
+  ]
   ```
-
-## Non-inverted Prediction
 
 ## License
 
