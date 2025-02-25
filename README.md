@@ -176,6 +176,8 @@ uvicorn main:app --reload --port <PORT>
   [[{"topic_id": 10829, "topic_label": "829: Networks on Chip in System-on-Chip Design", "topic_score": 0.9978}, {"topic_id": 10054, "topic_label": "54: Parallel Computing and Performance Optimization", "topic_score": 0.9962}, {"topic_id": 11522, "topic_label": "1522: Design and Optimization of Field-Programmable Gate Arrays and Application-Specific Integrated Circuits", "topic_score": 0.9909}], [{"topic_id": 10110, "topic_label": "110: Seismicity and Tectonic Plate Interactions", "topic_score": 0.9995}, {"topic_id": 12157, "topic_label": "2157: Machine Learning for Mineral Prospectivity Mapping", "topic_score": 0.9933}, {"topic_id": 10399, "topic_label": "399: Characterization of Shale Gas Pore Structure", "topic_score": 0.991}]]
   ```
 
+## Non-inverted Prediction
+
 ## License
 
 This project uses OpenAlex's topic classification model. Please refer to their [license](https://github.com/ourresearch/openalex-topic-classification/blob/main/LICENSE) for terms of use.
