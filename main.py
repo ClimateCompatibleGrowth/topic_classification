@@ -20,11 +20,15 @@ app = FastAPI()
 async def health_check():
     """Check if the service and model are healthy and operational.
 
-    Returns:
-        JSONResponse with service health status and details
+    Returns
+    -------
+    JSONResponse
+        with service health status and details
 
-    Raises:
-        HTTPException: If model or service is unhealthy
+    Raises
+    ------
+    HTTPException
+        If model or service is unhealthy
     """
     try:
         if not pred_model:
@@ -56,14 +60,19 @@ async def single(paper_input: List[PaperInput]):
     Takes a list of papers with their metadata and returns topic predictions:
     - Validates input JSON format
     - Processes titles and abstracts
-    - Analyzes citations
+    - Analyses citations
     - Returns topic IDs, labels and confidence scores for each paper
 
-    Args:
-        request: FastAPI Request object containing JSON payload
+    Parameters
+    ----------
+    paper_input : List[PaperInput]
+        A list containing a single paper's metadata.
 
-    Returns:
-        JSONResponse with list of predictions per paper:
+    Returns
+    -------
+    JSONResponse
+        with a list of predictions for the paper.
+        For example:
         [
             [
                 {
@@ -76,8 +85,10 @@ async def single(paper_input: List[PaperInput]):
             ...
         ]
 
-    Raises:
-        HTTPException: If invalid JSON or processing error occurs
+    Raises
+    ------
+    HTTPException
+        If invalid JSON or processing error occurs
     """
     try:
         if len(paper_input) > 1:
@@ -98,14 +109,20 @@ async def single(paper_input: List[PaperInput]):
 async def batch(paper_inputs: List[PaperInput]):
     """Process a batch of academic papers and return topic predictions.
 
-    Args:
-        request: FastAPI Request object containing JSON payload of papers
+    Parameters
+    ----------
+    paper_inputs : List[PaperInput]
+        A list of papers with their metadata.
 
-    Returns:
-        JSONResponse with predictions for each paper
+    Returns
+    -------
+    JSONResponse
+        with predictions for each paper
 
-    Raises:
-        HTTPException: If invalid input or processing error occurs
+    Raises
+    ------
+    HTTPException
+        If invalid input or processing error occurs
     """
     try:
         if len(paper_inputs) > 1000:
