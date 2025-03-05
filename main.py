@@ -1,13 +1,22 @@
-import json
-from http.client import HTTPException
-from predictor import predict, pred_model
-from fastapi import FastAPI, Request
+from typing import List
+
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+
+from predictor import pred_model, predict
+from schema import (
+    BatchPaperPredictions,
+    ErrorResponse,
+    HealthCheckResponse,
+    PaperInput,
+    SinglePaperPrediction,
+)
 
 app = FastAPI()
 
 
-@app.get("/health_check")
+@app.get("/")
+@app.get("/health_check", response_model=HealthCheckResponse)
 async def health_check():
     """Check if the service and model are healthy and operational.
 
@@ -36,8 +45,12 @@ async def health_check():
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
 
 
-@app.post("/single")
-async def single(request: Request) -> JSONResponse:
+@app.post(
+    "/single",
+    response_model=SinglePaperPrediction,
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
+async def single(paper_input: List[PaperInput]):
     """Process academic papers and return topic predictions.
 
     Takes a list of papers with their metadata and returns topic predictions:
@@ -67,17 +80,13 @@ async def single(request: Request) -> JSONResponse:
         HTTPException: If invalid JSON or processing error occurs
     """
     try:
-        input_json = await request.json()
-        if not isinstance(input_json, list):
-            input_json = json.loads(input_json)
-
-        if len(input_json) > 1:
+        if len(paper_input) > 1:
             return JSONResponse(
                 status_code=400,
                 content={"Error": "Only one paper can be processed at a time"},
             )
 
-        all_tags = predict(input_json)
+        all_tags = predict([paper_input[0].dict()])
         return JSONResponse(content=all_tags)
 
     except Exception as e:
@@ -85,8 +94,8 @@ async def single(request: Request) -> JSONResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/batch")
-async def batch(request: Request) -> JSONResponse:
+@app.post("/batch", response_model=BatchPaperPredictions)
+async def batch(paper_inputs: List[PaperInput]):
     """Process a batch of academic papers and return topic predictions.
 
     Args:
@@ -99,22 +108,16 @@ async def batch(request: Request) -> JSONResponse:
         HTTPException: If invalid input or processing error occurs
     """
     try:
-        input_json = await request.json()
-        if not isinstance(input_json, list):
-            raise HTTPException(
-                status_code=400, detail="Input must be a list of papers"
-            )
-
-        if len(input_json) > 1000:
+        if len(paper_inputs) > 1000:
             raise HTTPException(
                 status_code=400, detail="Batch size exceeds limit of 1000 papers"
             )
 
-        if not input_json:
+        if not paper_inputs:
             return JSONResponse(content=[])
 
         try:
-            predictions = predict(input_json)
+            predictions = predict([paper.dict() for paper in paper_inputs])
             return JSONResponse(content=predictions)
 
         except Exception as e:
