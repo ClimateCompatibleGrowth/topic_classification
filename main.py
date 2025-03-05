@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
 from predictor import pred_model, predict
-from schema import (
+from models import (
     BatchPaperPredictions,
     ErrorResponse,
     HealthCheckResponse,
