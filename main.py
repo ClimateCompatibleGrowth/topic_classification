@@ -1,21 +1,34 @@
-import json
-from http.client import HTTPException
-from predictor import predict, pred_model
-from fastapi import FastAPI, Request
+from typing import List
+
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+
+from predictor import pred_model, predict
+from models import (
+    BatchPaperPredictions,
+    ErrorResponse,
+    HealthCheckResponse,
+    PaperInput,
+    SinglePaperPrediction,
+)
 
 app = FastAPI()
 
 
-@app.get("/health_check")
+@app.get("/")
+@app.get("/health_check", response_model=HealthCheckResponse)
 async def health_check():
     """Check if the service and model are healthy and operational.
 
-    Returns:
-        JSONResponse with service health status and details
+    Returns
+    -------
+    JSONResponse
+        with service health status and details
 
-    Raises:
-        HTTPException: If model or service is unhealthy
+    Raises
+    ------
+    HTTPException
+        If model or service is unhealthy
     """
     try:
         if not pred_model:
@@ -36,21 +49,30 @@ async def health_check():
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
 
 
-@app.post("/single")
-async def single(request: Request) -> JSONResponse:
+@app.post(
+    "/single",
+    response_model=SinglePaperPrediction,
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
+async def single(paper_input: List[PaperInput]):
     """Process academic papers and return topic predictions.
 
     Takes a list of papers with their metadata and returns topic predictions:
     - Validates input JSON format
     - Processes titles and abstracts
-    - Analyzes citations
+    - Analyses citations
     - Returns topic IDs, labels and confidence scores for each paper
 
-    Args:
-        request: FastAPI Request object containing JSON payload
+    Parameters
+    ----------
+    paper_input : List[PaperInput]
+        A list containing a single paper's metadata.
 
-    Returns:
-        JSONResponse with list of predictions per paper:
+    Returns
+    -------
+    JSONResponse
+        with a list of predictions for the paper.
+        For example:
         [
             [
                 {
@@ -63,21 +85,19 @@ async def single(request: Request) -> JSONResponse:
             ...
         ]
 
-    Raises:
-        HTTPException: If invalid JSON or processing error occurs
+    Raises
+    ------
+    HTTPException
+        If invalid JSON or processing error occurs
     """
     try:
-        input_json = await request.json()
-        if not isinstance(input_json, list):
-            input_json = json.loads(input_json)
-
-        if len(input_json) > 1:
+        if len(paper_input) > 1:
             return JSONResponse(
                 status_code=400,
                 content={"Error": "Only one paper can be processed at a time"},
             )
 
-        all_tags = predict(input_json)
+        all_tags = predict([paper_input[0].dict()])
         return JSONResponse(content=all_tags)
 
     except Exception as e:
@@ -85,36 +105,36 @@ async def single(request: Request) -> JSONResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/batch")
-async def batch(request: Request) -> JSONResponse:
+@app.post("/batch", response_model=BatchPaperPredictions)
+async def batch(paper_inputs: List[PaperInput]):
     """Process a batch of academic papers and return topic predictions.
 
-    Args:
-        request: FastAPI Request object containing JSON payload of papers
+    Parameters
+    ----------
+    paper_inputs : List[PaperInput]
+        A list of papers with their metadata.
 
-    Returns:
-        JSONResponse with predictions for each paper
+    Returns
+    -------
+    JSONResponse
+        with predictions for each paper
 
-    Raises:
-        HTTPException: If invalid input or processing error occurs
+    Raises
+    ------
+    HTTPException
+        If invalid input or processing error occurs
     """
     try:
-        input_json = await request.json()
-        if not isinstance(input_json, list):
-            raise HTTPException(
-                status_code=400, detail="Input must be a list of papers"
-            )
-
-        if len(input_json) > 1000:
+        if len(paper_inputs) > 1000:
             raise HTTPException(
                 status_code=400, detail="Batch size exceeds limit of 1000 papers"
             )
 
-        if not input_json:
+        if not paper_inputs:
             return JSONResponse(content=[])
 
         try:
-            predictions = predict(input_json)
+            predictions = predict([paper.dict() for paper in paper_inputs])
             return JSONResponse(content=predictions)
 
         except Exception as e:
